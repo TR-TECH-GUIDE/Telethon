@@ -289,7 +289,8 @@ class TelegramBaseClient(abc.ABC):
             connect_timeout=self._timeout,
             auth_key_callback=self._auth_key_callback,
             update_callback=self._handle_update,
-            auto_reconnect_callback=self._handle_auto_reconnect
+            auto_reconnect_callback=self._handle_auto_reconnect,
+            client=self
         )
 
         # Remember flood-waited requests to avoid making them again

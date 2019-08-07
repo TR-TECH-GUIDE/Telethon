@@ -18,10 +18,23 @@ _EPOCH = _EPOCH_NAIVE.replace(tzinfo=timezone.utc)
 class BinaryReader:
     """
     Small utility class to read binary data.
+
+    Some Telegram objects read by `tgread_object` will have enhanced
+    capabilities if they have a `TelegramClient` available (the client
+    parameter), and this is best patched-in at deserialization time.
+
+    The alternative is adding it in the `TelegramClient` methods,
+    but this has some issues and a greater performance hit, because
+    for *each object recursively* we must check if it should have
+    the client or not.
+
+    By having it here, interested objects can make use of it at
+    deserialization time.
     """
 
-    def __init__(self, data):
+    def __init__(self, data, *, client=None):
         self.stream = BytesIO(data)
+        self._client = client
         self._last = None  # Should come in handy to spot -404 errors
 
     # region Reading

@@ -1,5 +1,6 @@
 import asyncio
 import collections
+import weakref
 
 from . import authenticator
 from ..extensions.messagepacker import MessagePacker
@@ -42,7 +43,8 @@ class MTProtoSender:
     def __init__(self, auth_key, loop, *, loggers,
                  retries=5, delay=1, auto_reconnect=True, connect_timeout=None,
                  auth_key_callback=None,
-                 update_callback=None, auto_reconnect_callback=None):
+                 update_callback=None, auto_reconnect_callback=None,
+                 client=None):
         self._connection = None
         self._loop = loop
         self._loggers = loggers
@@ -54,6 +56,13 @@ class MTProtoSender:
         self._auth_key_callback = auth_key_callback
         self._update_callback = update_callback
         self._auto_reconnect_callback = auto_reconnect_callback
+
+        # If there is a high-level client that created this sender, store
+        # a weak reference to it (otherwise we would likely have a cycle).
+        # This client will be used at deserialization-time, since some
+        # patched results will benefit from it, but if the client is no
+        # longer available, we don't *need* it either, just nice to have.
+        self._client = weakref.ref(client) if client else lambda: None
 
         # Whether the user has explicitly connected or disconnected.
         #
@@ -515,7 +524,9 @@ class MTProtoSender:
             if not state.future.cancelled():
                 state.future.set_exception(error)
         else:
-            with BinaryReader(rpc_result.body) as reader:
+            # We make use of the client weak-ref here at deserialization,
+            # will be None if we no longer have a client, but that's fine.
+            with BinaryReader(rpc_result.body, client=self._client()) as reader:
                 result = state.request.read_result(reader)
 
             if not state.future.cancelled():

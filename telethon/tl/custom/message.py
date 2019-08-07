@@ -215,7 +215,6 @@ class Message(ChatGetter, SenderGetter, TLObject, abc.ABC):
         the client that sent the message and making use of the
         known entities.
         """
-        self._client = client
         cache = client._entity_cache
 
         self._sender, self._input_sender = utils._get_entity_pair(

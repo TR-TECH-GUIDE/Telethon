@@ -367,14 +367,19 @@ def _write_to_bytes(tlobject, builder):
     builder.end_block()
 
 
-def _write_from_reader(tlobject, builder):
+def _write_from_reader(tlobject, builder, *, add_client=False):
     builder.writeln('@classmethod')
     builder.writeln('def from_reader(cls, reader):')
     for arg in tlobject.args:
         _write_arg_read_code(builder, arg, tlobject.args, name='_' + arg.name)
 
-    builder.writeln('return cls({})', ', '.join(
-        '{0}=_{0}'.format(a.name) for a in tlobject.real_args))
+    built = 'cls({})'.format(', '.join('{0}=_{0}'.format(a.name) for a in tlobject.real_args))
+    if add_client:
+        builder.writeln('result = {}', built)
+        builder.writeln('result._client = reader._client')
+        builder.writeln('return result')
+    else:
+        builder.writeln('return {}', built)
 
 
 def _write_read_result(tlobject, builder):
@@ -664,7 +669,7 @@ def _write_patched(out_dir, namespace_tlobjects):
 
                 _write_to_dict(t, builder)
                 _write_to_bytes(t, builder)
-                _write_from_reader(t, builder)
+                _write_from_reader(t, builder, add_client=True)
                 builder.current_indent = 0
                 builder.writeln()
                 builder.writeln(
