@@ -64,10 +64,7 @@ class RequestIter(abc.ABC):
         if self.index == len(self.buffer):
             # asyncio will handle times <= 0 to sleep 0 seconds
             if self.wait_time:
-                await asyncio.sleep(
-                    self.wait_time - (time.time() - self.last_load),
-                    loop=self.client.loop
-                )
+                await asyncio.sleep(self.wait_time - (time.time() - self.last_load))
                 self.last_load = time.time()
 
             self.index = 0

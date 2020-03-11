@@ -50,7 +50,7 @@ class Connection(abc.ABC):
             self._reader, self._writer = await asyncio.wait_for(
                 asyncio.open_connection(
                     self._ip, self._port, loop=self._loop, ssl=ssl),
-                loop=self._loop, timeout=timeout
+                timeout=timeout
             )
         else:
             import socks
@@ -68,8 +68,7 @@ class Connection(abc.ABC):
             s.setblocking(False)
             await asyncio.wait_for(
                 self._loop.sock_connect(s, address),
-                timeout=timeout,
-                loop=self._loop
+                timeout=timeout
             )
             if ssl:
                 if ssl_mod is None:

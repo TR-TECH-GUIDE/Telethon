@@ -26,7 +26,7 @@ class MessagePacker:
         self._state = state
         self._loop = loop
         self._deque = collections.deque()
-        self._ready = asyncio.Event(loop=loop)
+        self._ready = asyncio.Event()
         self._log = loggers[__name__]
 
     def append(self, state):

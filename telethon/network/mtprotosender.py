@@ -55,7 +55,7 @@ class MTProtoSender:
         self._auth_key_callback = auth_key_callback
         self._update_callback = update_callback
         self._auto_reconnect_callback = auto_reconnect_callback
-        self._connect_lock = asyncio.Lock(loop=loop)
+        self._connect_lock = asyncio.Lock()
 
         # Whether the user has explicitly connected or disconnected.
         #
@@ -206,7 +206,7 @@ class MTProtoSender:
         Note that it may resolve in either a ``ConnectionError``
         or any other unexpected error that could not be handled.
         """
-        return asyncio.shield(self._disconnected, loop=self._loop)
+        return asyncio.shield(self._disconnected)
 
     # Private methods
 
@@ -241,7 +241,7 @@ class MTProtoSender:
                     # reconnect cleanly after.
                     await self._connection.disconnect()
                     connected = False
-                    await asyncio.sleep(self._delay, loop=self._loop)
+                    await asyncio.sleep(self._delay)
                     continue  # next iteration we will try to reconnect
 
             break  # all steps done, break retry loop

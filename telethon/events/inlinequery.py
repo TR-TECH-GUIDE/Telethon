@@ -209,7 +209,7 @@ class InlineQuery(EventBuilder):
                 futures = [self._as_future(x, self._client.loop)
                            for x in results]
 
-                await asyncio.wait(futures, loop=self._client.loop)
+                await asyncio.wait(futures)
 
                 # All futures will be in the `done` *set* that `wait` returns.
                 #
