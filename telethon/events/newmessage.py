@@ -61,7 +61,7 @@ class NewMessage(EventBuilder):
                  func: Optional[Callable[['NewMessage.Event'], None]] = None,
                  incoming: Optional[bool] = None, outgoing: Optional[bool] = None,
                  from_users: Optional[hints.Entity] = None, forwards: Optional[bool] = None,
-                 pattern: Union[str, Callable, Pattern, Optional] = None):
+                 pattern: Union[str, Callable, Pattern, None] = None):
         if incoming and outgoing:
             incoming = outgoing = None  # Same as no filter
         elif incoming is not None and outgoing is None:
