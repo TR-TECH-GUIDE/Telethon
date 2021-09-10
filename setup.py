@@ -235,7 +235,8 @@ def main(argv):
             install_requires=['pyaes', 'rsa'],
             extras_require={
                 'cryptg': ['cryptg']
-            }
+            },
+            tests_require=['pytest', 'pytest-asyncio']
         )
 
 
