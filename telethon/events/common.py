@@ -1,13 +1,17 @@
 import abc
 import asyncio
 import warnings
+from typing import Optional, Sequence, Callable, TYPE_CHECKING
 
-from .. import utils
+from .. import utils, hints
 from ..tl import TLObject, types
 from ..tl.custom.chatgetter import ChatGetter
 
+if TYPE_CHECKING:
+    from .. import TelegramClient
 
-async def _into_id_set(client, chats):
+
+async def _into_id_set(client: 'TelegramClient', chats):
     """Helper util to turn the input chat or chats into a set of IDs."""
     if chats is None:
         return None
@@ -65,7 +69,11 @@ class EventBuilder(abc.ABC):
                 async def handler(event):
                     pass  # code here
     """
-    def __init__(self, chats=None, *, blacklist_chats=False, func=None):
+    def __init__(self,
+                 chats: Optional[Sequence[hints.Entity]] = None,
+                 *,
+                 blacklist_chats: bool = False,
+                 func: Optional[Callable[['EventCommon'], None]] = None):
         self.chats = chats
         self.blacklist_chats = bool(blacklist_chats)
         self.resolved = False
@@ -74,7 +82,7 @@ class EventBuilder(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def build(cls, update, others=None, self_id=None):
+    def build(cls, update: types.TypeUpdate, others=None, self_id=None):
         """
         Builds an event for the given update if possible, or returns None.
 
@@ -86,7 +94,7 @@ class EventBuilder(abc.ABC):
         """
         # TODO So many parameters specific to only some update types seems dirty
 
-    async def resolve(self, client):
+    async def resolve(self, client: 'TelegramClient'):
         """Helper method to allow event builders to be resolved before usage"""
         if self.resolved:
             return
@@ -99,10 +107,10 @@ class EventBuilder(abc.ABC):
                 await self._resolve(client)
                 self.resolved = True
 
-    async def _resolve(self, client):
+    async def _resolve(self, client: 'TelegramClient'):
         self.chats = await _into_id_set(client, self.chats)
 
-    def filter(self, event):
+    def filter(self, event: 'EventCommon'):
         """
         Returns a truthy value if the event passed the filter and should be
         used, or falsy otherwise. The return value may need to be awaited.
@@ -140,14 +148,17 @@ class EventCommon(ChatGetter, abc.ABC):
     """
     _event_name = 'Event'
 
-    def __init__(self, chat_peer=None, msg_id=None, broadcast=None):
+    def __init__(self,
+                 chat_peer: Optional[types.TypePeer] = None,
+                 msg_id: Optional[int] = None,
+                 broadcast: Optional[bool] = None):
         super().__init__(chat_peer, broadcast=broadcast)
         self._entities = {}
         self._client = None
         self._message_id = msg_id
-        self.original_update = None
+        self.original_update = None  # type: Optional[types.TypeUpdate]
 
-    def _set_client(self, client):
+    def _set_client(self, client: 'TelegramClient'):
         """
         Setter so subclasses can act accordingly when the client is set.
         """
@@ -159,7 +170,7 @@ class EventCommon(ChatGetter, abc.ABC):
             self._chat = self._input_chat = None
 
     @property
-    def client(self):
+    def client(self) -> 'TelegramClient':
         """
         The `telethon.TelegramClient` that created this event.
         """
